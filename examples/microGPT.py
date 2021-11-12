@@ -231,6 +231,7 @@ def sample(model, x, steps, temperature=1.0, sample=False, top_k=None):
     """
     block_size = model.get_block_size()
     model.eval()
+    model = model.to(x.device)
 
     # CREDITS: https://github.com/karpathy/minGPT/blob/master/mingpt/utils.py
     def top_k_logits(logits, k):

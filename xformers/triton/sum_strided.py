@@ -20,6 +20,11 @@ def sum_2d_dim_0(x: torch.Tensor):
     assert (
         x.ndim == 2
     ), "This is a very specific kernel, only for 2-dim tensors and summing along dim 0"
+    M, N = x.shape
+
+    assert (
+        M >= 4
+    ), "This is a very specific kernel, requires the reduction dimension to be bigger than 4"
 
     assert x.stride(1) == 1, (
         "We're expecting x to be contiguous along dim 1, and non contiguous along dim 0.\n"
@@ -27,8 +32,15 @@ def sum_2d_dim_0(x: torch.Tensor):
     )
 
     def grid(meta):
-        return (triton.cdiv(x.shape[1], meta["BLOCK_N"]),)
+        return (triton.cdiv(N, meta["BLOCK_N"]),)
 
-    k_sum_0[grid](out, x, x.stride(0), x.shape[0], x.shape[1])
+    # fmt: off
+    k_sum_0[grid](
+        out, x,
+        x.stride(0),
+        M, N,
+        x.dtype == torch.float16,
+    )
+    # fmt: on
 
     return out
